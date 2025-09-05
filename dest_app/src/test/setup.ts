@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import { vi } from 'vitest'
+import { vi, beforeAll, afterAll } from 'vitest'
 
 // Mock import.meta.env
 vi.mock('import.meta.env', () => ({
