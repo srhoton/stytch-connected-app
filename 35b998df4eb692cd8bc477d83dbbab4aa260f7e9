@@ -1,0 +1,29 @@
+User Prompts from Session:
+
+1. "Ok, now for the final step. We want to implement a flow that goes like this: 1. When a user hits dest_app and have *not* logged in, they are directed to idp app. After they log in via idp_app, they are redirected to the main page of dest_app, with the 'access granted' page. 2. If a user is already logged in to dest_app, they are *not* directed to idp_app, and view the 'access_granted' page. Ultrathink this."
+
+2. "Ok. It looks like there is an auth loop somewhere. If I'm logged in on idp_app, going to the the dest_app main page causes a looping where I bounce back and forth between apps."
+
+3. "Ok. Now could you modify the idp_app to use StytchB2BProvider for the login flow, not the custom solution in there now? You could look at this quickstart, or the code in the ../ui-main-web directory to see examples. Ultrathink."
+
+4. "I'm still seeing this error when loading the idp app: [vite] connecting... client.ts:19:9 [vite] connected. client.ts:155:15 Uncaught SyntaxError: The requested module 'http://localhost:3001/node_modules/.vite/deps/@stytch_react_b2b.js?v=941efe7a' doesn't provide an export named: 'useStytchB2BSession'"
+
+5. "When the dest_app loads now, the console shows this error: Uncaught SyntaxError: The requested module 'http://localhost:3000/node_modules/.vite/deps/@stytch_vanilla-js_b2b.js?v=c2edc6f5' doesn't provide an export named: 'StytchB2BClient'"
+
+6. "ok. loading the idp_app now throws this error in the console: Uncaught SyntaxError: The requested module 'http://localhost:3001/node_modules/.vite/deps/@stytch_react_b2b.js?v=941efe7a' doesn't provide an export named: 'useStytchSession'"
+
+7. "nope. Loading idp_app now throws there errors: Uncaught TypeError: can't access property 'self', stytch is undefined"
+
+8. "ok, I can log into the idp_app now. But on the dest_app, it still shows: Session Validation Failed Failed to validate session Please ensure you have a valid Stytch session to access this content. The only message in the console is 'Starting session validation...'"
+
+9. "ok. now back on the idp_app, can we use the <StytchB2B> UI component, to manage the login process, not the vanilla javascript? And, can we wrap the app in <StytchB2BProvider>, like in this example? https://stytch.com/docs/b2b/quickstarts/react. Ultrathink."
+
+10. "Opening the idp_app now throws this error in the console: vite] connecting... client.ts:19:9 [vite] connected. client.ts:155:15 Uncaught TypeError: can't access property 'self', stytch is undefined"
+
+11. "ok. Now hitting the idp_app has no errors in the console, but this is the message in the UI: Looks like there was an error! The organization you are looking for could not be found. If you think this is a mistake, contact your admin."
+
+12. "ok, now the idp_app does not load, and this is in the console: Uncaught TypeError: can't access property 0, _a.providers is undefined"
+
+13. "ok, that works. Could you add magic link functionality to the config as well?"
+
+14. "ok. Please commit your work, add prompts in this session to the commit via git notes, push it, and using your github mcp integration, create a PR."
