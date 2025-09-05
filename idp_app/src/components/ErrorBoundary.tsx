@@ -9,19 +9,13 @@ function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
         <p className="text-gray-700 mb-4">
           We encountered an unexpected error. Please try refreshing the page or contact support if the problem persists.
         </p>
-        {error && (
-          <details className="text-sm text-gray-600 mb-4">
-            <summary className="cursor-pointer mb-2 font-semibold">Error details</summary>
-            <pre className="bg-gray-100 p-3 rounded overflow-auto text-xs">
-              {error.message}
-              {import.meta.env.DEV && error.stack && (
-                <>
-                  {'\n\n'}Stack trace:{'\n'}
-                  {error.stack}
-                </>
-              )}
-            </pre>
-          </details>
+        {/* Error details are intentionally not shown in the UI to avoid leaking sensitive information */}
+        {error && import.meta.env.DEV && (
+          // Log error details to the console for debugging in development mode
+          (() => {
+            console.error('Error caught by ErrorBoundary:', error);
+            return null;
+          })()
         )}
         <div className="space-y-2">
           <button
