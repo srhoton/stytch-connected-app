@@ -6,12 +6,16 @@ interface StytchProviderProps {
   children: React.ReactNode;
 }
 
-const PUBLIC_TOKEN = 'public-token-test-22dae31b-07a8-4af8-9b58-be277c857fb9';
+const PUBLIC_TOKEN = import.meta.env.VITE_STYTCH_PUBLIC_TOKEN;
+
+if (!PUBLIC_TOKEN) {
+  throw new Error('VITE_STYTCH_PUBLIC_TOKEN environment variable is not set');
+}
 
 // Initialize the Stytch client with cookie options for session sharing
 const stytchClient = new StytchB2BUIClient(PUBLIC_TOKEN, {
   cookieOptions: {
-    domain: 'localhost',
+    domain: import.meta.env.VITE_STYTCH_COOKIE_DOMAIN || window.location.hostname,
     path: '/',
   },
 });

@@ -56,6 +56,10 @@ const AuthenticationFlow: React.FC = () => {
     );
   }
 
+  // If we have a token with discovery type, let the StytchB2B component handle it
+  // The component will automatically process tokens in the URL
+  // Token validation: token present and type check
+
   // If authenticated, show session or redirect
   if (session) {
     // If there's a return URL, show redirecting message
@@ -74,7 +78,7 @@ const AuthenticationFlow: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          <SessionDisplay 
+          <SessionDisplay
             session={session}
             onLogout={handleLogout}
           />
@@ -85,21 +89,27 @@ const AuthenticationFlow: React.FC = () => {
 
   // Show Stytch B2B UI component for authentication
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 flex flex-col items-center justify-center px-4 py-12">
+      <div className="mb-8 flex flex-col items-center">
+        <div className="mb-4">
+          <img 
+            src="/FullbayLogo.svg" 
+            alt="Fullbay" 
+            className="h-20 w-20"
+          />
+        </div>
+        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Fullbay</h1>
+        <p className="text-gray-600 mt-2 text-base">Sign in to continue to your account</p>
+      </div>
       <div className="w-full max-w-md">
         <StytchB2B
           config={{
-            products: [Products.passwords, Products.emailMagicLinks],
+            products: [Products.passwords],
             authFlowType: 'Discovery',
+            disableCreateOrganization: true,
             passwordOptions: {
               loginRedirectURL: window.location.origin,
-              signupRedirectURL: window.location.origin,
-              resetPasswordRedirectURL: `${window.location.origin}/reset-password`,
-            },
-            emailMagicLinksOptions: {
-              discoveryRedirectURL: window.location.origin,
-              loginRedirectURL: window.location.origin,
-              signupRedirectURL: window.location.origin,
+              resetPasswordRedirectURL: `${window.location.origin}/authenticate`,
             },
             sessionOptions: {
               sessionDurationMinutes: 60,
@@ -109,17 +119,17 @@ const AuthenticationFlow: React.FC = () => {
             container: {
               width: '100%',
               backgroundColor: '#ffffff',
-              borderRadius: '8px',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-              padding: '32px',
+              borderRadius: '12px',
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+              padding: '40px',
             },
-            primaryColor: '#3b82f6',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
+            primaryColor: '#cf2027',
+            fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
           }}
           callbacks={{
             onEvent: (event) => {
-              console.log('Stytch event:', event);
-              
+              // Stytch authentication event received
+
               // After successful authentication, check for return URL
               if (event.type === 'AUTHENTICATE_SUCCESS') {
                 const savedReturnUrl = sessionStorage.getItem('auth_return_url');
@@ -148,24 +158,7 @@ export const App: React.FC = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<AuthenticationFlow />} />
-          <Route path="/reset-password" element={
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-              <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                  Password Reset
-                </h2>
-                <p className="text-gray-600 mb-6">
-                  Please check your email for the password reset link and follow the instructions.
-                </p>
-                <button
-                  onClick={() => window.location.href = '/'}
-                  className="btn btn-primary"
-                >
-                  Back to Login
-                </button>
-              </div>
-            </div>
-          } />
+          <Route path="/authenticate" element={<AuthenticationFlow />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

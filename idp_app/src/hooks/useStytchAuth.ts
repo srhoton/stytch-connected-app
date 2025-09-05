@@ -1,6 +1,6 @@
 import { useStytchB2BClient, useStytchMemberSession } from '@stytch/react/b2b';
-import { useState, useEffect } from 'react';
-import type { LoginCredentials } from '@/types';
+import { useState } from 'react';
+import type { LoginCredentials, AuthError } from '@/types';
 
 export const useStytchAuth = () => {
   const stytch = useStytchB2BClient();
@@ -34,7 +34,7 @@ export const useStytchAuth = () => {
         throw new Error('Please enter your organization identifier. Contact your admin if you don\'t know it.');
       }
 
-      console.log('Attempting authentication with organization:', orgToUse);
+      // Attempting authentication with organization
 
       // Use the Stytch client to authenticate
       const response = await stytch.passwords.authenticate({
@@ -44,10 +44,10 @@ export const useStytchAuth = () => {
         session_duration_minutes: 60,
       });
 
-      console.log('Authentication response:', response);
+      // Authentication response received
 
       if (response.status_code === 200) {
-        console.log('Authentication successful');
+        // Authentication successful
         storeOrganization(orgToUse);
         
         // Check for return URL and redirect if needed
@@ -59,21 +59,22 @@ export const useStytchAuth = () => {
       } else {
         throw new Error('Authentication failed');
       }
-    } catch (err: any) {
-      console.error('Authentication error:', err);
+    } catch (err) {
+      const authError = err as AuthError;
+      console.error('Authentication error:', authError);
       let errorMessage = 'An unexpected error occurred during authentication.';
       
-      if (err.error_type === 'invalid_credentials') {
+      if (authError.error_type === 'invalid_credentials') {
         errorMessage = 'Invalid email or password. Please check your credentials and try again.';
-      } else if (err.error_type === 'organization_not_found') {
+      } else if (authError.error_type === 'organization_not_found') {
         clearStoredOrganization();
         errorMessage = 'Organization not found. Please check your organization identifier and try again.';
-      } else if (err.error_type === 'member_not_found') {
+      } else if (authError.error_type === 'member_not_found') {
         errorMessage = 'No account found with this email address in the specified organization.';
-      } else if (err.error_type === 'password_required') {
+      } else if (authError.error_type === 'password_required') {
         errorMessage = 'Password authentication is required for this account.';
-      } else if (err.error_message) {
-        errorMessage = err.error_message;
+      } else if (authError.error_message) {
+        errorMessage = authError.error_message;
       }
       
       setError(errorMessage);
@@ -114,16 +115,17 @@ export const useStytchAuth = () => {
       if (response.status_code !== 200) {
         throw new Error('Failed to send password reset email');
       }
-    } catch (err: any) {
+    } catch (err) {
+      const authError = err as AuthError;
       let errorMessage = 'Failed to send password reset email. Please try again.';
       
-      if (err.error_type === 'member_not_found') {
+      if (authError.error_type === 'member_not_found') {
         errorMessage = 'No account found with this email address in your organization.';
-      } else if (err.error_type === 'organization_not_found') {
+      } else if (authError.error_type === 'organization_not_found') {
         clearStoredOrganization();
         errorMessage = 'Organization not found. Please log in again to set your organization.';
-      } else if (err.error_message) {
-        errorMessage = err.error_message;
+      } else if (authError.error_message) {
+        errorMessage = authError.error_message;
       }
       
       setError(errorMessage);
@@ -147,15 +149,16 @@ export const useStytchAuth = () => {
       if (response.status_code !== 200) {
         throw new Error('Password reset failed');
       }
-    } catch (err: any) {
+    } catch (err) {
+      const authError = err as AuthError;
       let errorMessage = 'Failed to reset password. Please try again.';
       
-      if (err.error_type === 'reset_token_invalid') {
+      if (authError.error_type === 'reset_token_invalid') {
         errorMessage = 'Invalid or expired reset token. Please request a new password reset.';
-      } else if (err.error_type === 'password_too_weak') {
+      } else if (authError.error_type === 'password_too_weak') {
         errorMessage = 'Password is too weak. Please use a stronger password.';
-      } else if (err.error_message) {
-        errorMessage = err.error_message;
+      } else if (authError.error_message) {
+        errorMessage = authError.error_message;
       }
       
       setError(errorMessage);

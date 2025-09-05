@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { LoginForm, PasswordResetForm } from '@/components/forms';
-import { LoadingSpinner } from '@/components/ui';
+// Removed unused LoadingSpinner import
 import { useStytchAuth } from '@/hooks/useStytchAuth';
+import { useToast } from '@/components/Toast';
 import { sanitizeReturnUrl, getDefaultRedirectUrl } from '@/utils/urlValidator';
+import { getErrorMessage, logError } from '@/utils/errors';
 import type { LoginCredentials, PasswordResetRequest } from '@/types';
 
 export const LoginPage: React.FC = () => {
   const { login, requestPasswordReset } = useStytchAuth();
+  const { addToast } = useToast();
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [searchParams] = useSearchParams();
   const returnUrl = searchParams.get('return_url');
@@ -18,30 +21,50 @@ export const LoginPage: React.FC = () => {
       const validatedUrl = sanitizeReturnUrl(returnUrl);
       if (validatedUrl) {
         sessionStorage.setItem('auth_return_url', validatedUrl);
+      } else {
+        addToast('Invalid redirect URL provided', 'warning');
+        logError(new Error(`Invalid redirect URL: ${returnUrl}`), 'LoginPage');
       }
     }
-  }, [returnUrl]);
+  }, [returnUrl, addToast]);
 
   const handleLogin = async (credentials: LoginCredentials): Promise<void> => {
-    await login(credentials);
-    
-    // After successful login, check for return URL and redirect
-    const savedReturnUrl = sessionStorage.getItem('auth_return_url');
-    if (savedReturnUrl) {
-      sessionStorage.removeItem('auth_return_url');
-      // The URL is already validated and sanitized
-      window.location.href = savedReturnUrl;
-    } else {
-      // If no return URL, use default
-      const defaultUrl = getDefaultRedirectUrl();
-      if (defaultUrl !== '/') {
-        window.location.href = defaultUrl;
+    try {
+      await login(credentials);
+      addToast('Login successful! Redirecting...', 'success');
+      
+      // After successful login, check for return URL and redirect
+      const savedReturnUrl = sessionStorage.getItem('auth_return_url');
+      if (savedReturnUrl) {
+        sessionStorage.removeItem('auth_return_url');
+        // The URL is already validated and sanitized
+        window.location.href = savedReturnUrl;
+      } else {
+        // If no return URL, use default
+        const defaultUrl = getDefaultRedirectUrl();
+        if (defaultUrl !== '/') {
+          window.location.href = defaultUrl;
+        }
       }
+    } catch (error) {
+      const errorMessage = getErrorMessage(error);
+      addToast(errorMessage, 'error');
+      logError(error, 'LoginPage.handleLogin');
+      throw error; // Re-throw to let the form handle loading state
     }
   };
 
   const handlePasswordReset = async (request: PasswordResetRequest): Promise<void> => {
-    await requestPasswordReset(request.email);
+    try {
+      await requestPasswordReset(request.email);
+      addToast('Password reset email sent! Please check your inbox.', 'success');
+      setShowPasswordReset(false);
+    } catch (error) {
+      const errorMessage = getErrorMessage(error);
+      addToast(errorMessage, 'error');
+      logError(error, 'LoginPage.handlePasswordReset');
+      throw error; // Re-throw to let the form handle loading state
+    }
   };
 
   const togglePasswordReset = (): void => {
