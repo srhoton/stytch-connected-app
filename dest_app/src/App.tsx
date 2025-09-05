@@ -44,7 +44,7 @@ const router = createBrowserRouter([
           </h2>
           
           <p className="text-gray-600 mb-6">
-            The page you're looking for doesn't exist.
+            The page you&apos;re looking for doesn&apos;t exist.
           </p>
           
           <button
@@ -83,7 +83,7 @@ const router = createBrowserRouter([
           </h2>
           
           <p className="text-gray-600 mb-6">
-            The page you're looking for doesn't exist.
+            The page you&apos;re looking for doesn&apos;t exist.
           </p>
           
           <button

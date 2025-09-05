@@ -5,25 +5,22 @@ import type {
   LoginCredentials,
   PasswordResetRequest,
   PasswordResetConfirm,
-  DiscoveryResponse,
   AuthError
 } from '@/types';
 
 const STYTCH_CONFIG: StytchConfig = {
-  projectId: 'project-test-6849076e-d381-4c46-a477-75501bbe3431',
-  publicToken: 'public-token-test-22dae31b-07a8-4af8-9b58-be277c857fb9',
+  projectId: import.meta.env.VITE_STYTCH_PROJECT_ID || '',
+  publicToken: import.meta.env.VITE_STYTCH_PUBLIC_TOKEN || '',
   cookieOptions: {
-    domain: 'localhost',
+    domain: import.meta.env.VITE_STYTCH_COOKIE_DOMAIN || window.location.hostname,
     path: '/',
   },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let stytchClient: any = null;
-let initializationPromise: Promise<any> | null = null;
+let stytchClient: StytchB2BUIClient | null = null;
+let initializationPromise: Promise<StytchB2BUIClient> | null = null;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const initializeStytch = async (): Promise<any> => {
+export const initializeStytch = async (): Promise<StytchB2BUIClient> => {
   if (stytchClient) {
     return stytchClient;
   }
@@ -32,12 +29,12 @@ export const initializeStytch = async (): Promise<any> => {
     return initializationPromise;
   }
   
-  initializationPromise = (async () => {
+  initializationPromise = (async (): Promise<StytchB2BUIClient> => {
     stytchClient = new StytchB2BUIClient(STYTCH_CONFIG.publicToken, {
       cookieOptions: STYTCH_CONFIG.cookieOptions,
     });
     // Wait for the client to be fully initialized
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise<void>(resolve => setTimeout(resolve, 100));
     return stytchClient;
   })();
   
@@ -65,11 +62,11 @@ export const authenticateWithPassword = async (
   organizationSlug?: string
 ): Promise<StytchSession> => {
   try {
-    console.log('Authenticating with credentials:', { email: credentials.email, organizationSlug });
+    // Authenticating with provided credentials
     const client = await initializeStytch();
     
     // Use provided org, stored org, or default for testing
-    let orgToUse = organizationSlug || getStoredOrganization();
+    const orgToUse = organizationSlug || getStoredOrganization();
     
     // If no organization is stored or provided, we need to handle discovery
     if (!orgToUse) {
@@ -78,36 +75,31 @@ export const authenticateWithPassword = async (
       throw new Error('Please enter your organization identifier. Contact your admin if you don\'t know it.');
     }
     
-    console.log('Attempting authentication with organization:', orgToUse);
+    // Attempting authentication with organization
     
-    try {
-      // Try authenticating with organization slug
-      const response = await client.passwords.authenticate({
-        email_address: credentials.email,
-        password: credentials.password,
-        organization_id: orgToUse,
-        session_duration_minutes: 60,
-      });
+    // Try authenticating with organization slug
+    const response = await client.passwords.authenticate({
+      email_address: credentials.email,
+      password: credentials.password,
+      organization_id: orgToUse,
+      session_duration_minutes: 60,
+    });
+    
+    // Authentication response received
+    
+    if (response.status_code === 200 && response.session_token) {
+      // Authentication successful
       
-      console.log('Authentication response:', response);
+      // Store the organization for future logins
+      storeOrganization(orgToUse);
       
-      if (response.status_code === 200 && response.session_token) {
-        console.log('Authentication successful');
-        
-        // Store the organization for future logins
-        storeOrganization(orgToUse);
-        
-        // The session token is already set by the SDK automatically
-        return response as StytchSession;
-      }
-      
-      throw new Error('Authentication failed - unexpected response');
-    } catch (error) {
-      console.log('Authentication attempt failed:', error);
-      throw error;
+      // The session token is already set by the SDK automatically
+      return response as StytchSession;
     }
+    
+    throw new Error('Authentication failed - unexpected response');
   } catch (error) {
-    console.error('Authentication error:', error);
+    // Authentication error occurred
     const authError = error as AuthError;
     
     // Provide detailed error messages
@@ -156,7 +148,7 @@ export const getCurrentSession = async (): Promise<StytchSession | null> => {
       return null;
     }
   } catch (error) {
-    console.error('Failed to get current session:', error);
+    // Failed to get current session
     return null;
   }
 };
@@ -172,7 +164,7 @@ export const logout = async (): Promise<void> => {
     // Uncomment the line below if you want to clear it on logout
     // clearStoredOrganization();
   } catch (error) {
-    console.error('Failed to logout:', error);
+    // Failed to logout - fail silently
   }
 };
 

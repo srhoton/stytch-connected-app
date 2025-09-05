@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { App } from './App';
 import { StytchProvider } from './providers/StytchProvider';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { ToastProvider } from './components/Toast';
 import '@/styles/globals.css';
 
 const rootElement = document.getElementById('root');
@@ -12,8 +14,12 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <StytchProvider>
-      <App />
-    </StytchProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <StytchProvider>
+          <App />
+        </StytchProvider>
+      </ToastProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );

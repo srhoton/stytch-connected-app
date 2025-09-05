@@ -2,20 +2,18 @@ import { StytchB2BUIClient } from '@stytch/vanilla-js/b2b';
 import type { StytchConfig, StytchSession, SessionValidationResult, StytchError } from '@/types/stytch';
 
 const STYTCH_CONFIG: StytchConfig = {
-  projectId: 'project-test-6849076e-d381-4c46-a477-75501bbe3431',
-  publicToken: 'public-token-test-22dae31b-07a8-4af8-9b58-be277c857fb9',
+  projectId: import.meta.env.VITE_STYTCH_PROJECT_ID || '',
+  publicToken: import.meta.env.VITE_STYTCH_PUBLIC_TOKEN || '',
   cookieOptions: {
-    domain: 'localhost',
+    domain: import.meta.env.VITE_STYTCH_COOKIE_DOMAIN || window.location.hostname,
     path: '/',
   },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let stytchClient: any = null;
-let initializationPromise: Promise<any> | null = null;
+let stytchClient: StytchB2BUIClient | null = null;
+let initializationPromise: Promise<StytchB2BUIClient> | null = null;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const initializeStytch = async (): Promise<any> => {
+export const initializeStytch = async (): Promise<StytchB2BUIClient> => {
   if (stytchClient) {
     return stytchClient;
   }
@@ -24,13 +22,13 @@ export const initializeStytch = async (): Promise<any> => {
     return initializationPromise;
   }
   
-  initializationPromise = (async () => {
+  initializationPromise = (async (): Promise<StytchB2BUIClient> => {
     // Use the same initialization as idp_app for consistency
     stytchClient = new StytchB2BUIClient(STYTCH_CONFIG.publicToken, {
       cookieOptions: STYTCH_CONFIG.cookieOptions,
     });
     // Wait for the client to be fully initialized
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise<void>(resolve => setTimeout(resolve, 100));
     return stytchClient;
   })();
   
@@ -39,14 +37,12 @@ export const initializeStytch = async (): Promise<any> => {
 
 export const validateSession = async (): Promise<SessionValidationResult> => {
   try {
-    console.log('Starting session validation...');
     const client = await initializeStytch();
     
     // Wait a bit more for client to be fully ready
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise<void>(resolve => setTimeout(resolve, 500));
     
     if (!client) {
-      console.log('Stytch client not initialized');
       return {
         isValid: false,
         session: null,
@@ -55,8 +51,6 @@ export const validateSession = async (): Promise<SessionValidationResult> => {
       };
     }
 
-    console.log('Client initialized, checking session...');
-    console.log('Client session object:', client.session);
     
     // Try to get the current session
     try {
@@ -64,11 +58,8 @@ export const validateSession = async (): Promise<SessionValidationResult> => {
       const sessionJWT = client.session.getTokens()?.session_jwt;
       const sessionToken = client.session.getTokens()?.session_token;
       
-      console.log('Session JWT exists:', !!sessionJWT);
-      console.log('Session token exists:', !!sessionToken);
       
       if (!sessionJWT && !sessionToken) {
-        console.log('No session tokens found');
         return {
           isValid: false,
           session: null,
@@ -80,10 +71,7 @@ export const validateSession = async (): Promise<SessionValidationResult> => {
       // Try to authenticate the session
       const sessionData = await client.session.authenticate();
       
-      console.log('Session authentication response:', sessionData);
-      
       if (sessionData && (sessionData.member_session || sessionData.session)) {
-        console.log('Session is valid');
         return {
           isValid: true,
           session: (sessionData.member_session || sessionData) as StytchSession,
@@ -91,7 +79,6 @@ export const validateSession = async (): Promise<SessionValidationResult> => {
           loading: false,
         };
       } else {
-        console.log('Session response but no valid session data');
         return {
           isValid: false,
           session: null,
@@ -99,12 +86,11 @@ export const validateSession = async (): Promise<SessionValidationResult> => {
           loading: false,
         };
       }
-    } catch (authError: any) {
-      console.log('Session authentication error:', authError);
-      console.log('Error details:', JSON.stringify(authError, null, 2));
+    } catch (authError) {
+      const error = authError as StytchError;
       
       // Check if it's just no session vs actual error
-      if (authError.status_code === 401 || authError.error_type === 'unauthorized' || authError.error_type === 'session_not_found') {
+      if (error.status_code === 401 || error.error_type === 'unauthorized' || error.error_type === 'session_not_found') {
         return {
           isValid: false,
           session: null,
@@ -116,17 +102,18 @@ export const validateSession = async (): Promise<SessionValidationResult> => {
       return {
         isValid: false,
         session: null,
-        error: authError.error_message || 'Failed to validate session',
+        error: error.error_message || 'Failed to validate session',
         loading: false,
       };
     }
-  } catch (error: any) {
-    console.error('Session validation error:', error);
-    console.error('Error details:', JSON.stringify(error, null, 2));
+  } catch (error) {
+    const err = error as StytchError | Error;
+    console.error('Session validation error:', err);
+    console.error('Error details:', JSON.stringify(err, null, 2));
     return {
       isValid: false,
       session: null,
-      error: error.error_message || error.message || 'Failed to validate session',
+      error: 'error_message' in err ? err.error_message : err.message || 'Failed to validate session',
       loading: false,
     };
   }

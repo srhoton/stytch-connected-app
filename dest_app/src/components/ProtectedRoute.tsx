@@ -20,7 +20,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       const timeoutId = setTimeout(() => {
         const currentUrl = window.location.href;
         const returnUrl = encodeURIComponent(currentUrl);
-        console.log('Redirecting to IDP app - session not valid');
         window.location.href = `${IDP_APP_URL}?return_url=${returnUrl}`;
       }, 500);
       

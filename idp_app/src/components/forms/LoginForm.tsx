@@ -113,7 +113,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             })}
           />
           <p className="text-xs text-gray-500">
-            Contact your admin if you don't know your organization ID.
+            Contact your admin if you don&apos;t know your organization ID.
             {getStoredOrganization() && (
               <button
                 type="button"
@@ -166,7 +166,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           This app validates existing Stytch B2B accounts only.
         </p>
         <p className="text-xs text-gray-500 mt-1">
-          New users should be created through your organization's admin portal.
+          New users should be created through your organization&apos;s admin portal.
         </p>
       </div>
     </form>
