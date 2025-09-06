@@ -1,0 +1,33 @@
+Session Prompts:
+
+1. "ok. Can you run tsc, then address the errors for the React site?"
+   - User requested TypeScript compilation check and error fixes
+
+2. "Please fix the immediate issues."
+   - User wanted critical blocking issues fixed (ESLint errors, failing tests, missing error boundaries)
+
+3. "I meant plan and apply the terraform deployment in the terraform directory,"
+   - User clarified they wanted Terraform deployment, not code improvements
+
+4. "ok, continue with the fixes you were doing."
+   - User wanted to resume code improvements after deployment
+
+5. "ok, redeploy the site via the terraform code."
+   - User requested redeployment with all improvements
+
+6. "Ok. The deployed site now isn't loading, with this in the console: Uncaught Error: Missing required environment variable: VITE_API_URL"
+   - User reported production error with environment variable validation
+
+7. "ok. Please commit your work, add prompts in this session to the commit via git notes, push it, and using your github mcp integration, create a PR."
+   - User requested to commit, document, and create PR
+
+Actions taken:
+- Fixed TypeScript and ESLint errors
+- Added comprehensive React component tests
+- Implemented error boundaries and error handling patterns
+- Added accessibility features and performance optimizations
+- Created navigation service abstraction
+- Added environment variable validation
+- Deployed to AWS using Terraform
+- Fixed production environment variable issue
+- Created comprehensive documentation in commit message
