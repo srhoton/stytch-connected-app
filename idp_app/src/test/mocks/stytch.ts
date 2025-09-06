@@ -2,28 +2,32 @@ import { vi } from 'vitest'
 import type { StytchSession, AuthError } from '@/types'
 
 export const mockStytchSession: StytchSession = {
-  member_session_id: 'test-session-id',
-  member_id: 'test-member-id',
-  organization_id: 'test-org-id',
-  started_at: '2024-01-01T00:00:00Z',
-  last_accessed_at: '2024-01-01T00:00:00Z',
-  expires_at: '2024-01-02T00:00:00Z',
-  authentication_factors: [],
-  custom_claims: {},
   session_token: 'test-session-token',
   session_jwt: 'test-session-jwt',
+  session: {
+    session_id: 'test-session-id',
+    member_id: 'test-member-id',
+    organization_id: 'test-org-id',
+    started_at: '2024-01-01T00:00:00Z',
+    last_accessed_at: '2024-01-01T00:00:00Z',
+    expires_at: '2024-01-02T00:00:00Z',
+    authentication_factors: [],
+  },
   member: {
     member_id: 'test-member-id',
     email_address: 'test@example.com',
     name: 'Test User',
     organization_id: 'test-org-id',
+    status: 'active',
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z',
+    is_admin: false,
   },
   organization: {
     organization_id: 'test-org-id',
     organization_name: 'Test Organization',
     organization_slug: 'test-org',
   },
-  status_code: 200,
 }
 
 export const mockAuthError: AuthError = {

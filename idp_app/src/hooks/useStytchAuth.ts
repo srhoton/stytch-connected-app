@@ -141,7 +141,7 @@ export const useStytchAuth = () => {
     
     try {
       const response = await stytch.passwords.resetByEmail({
-        token,
+        password_reset_token: token,
         password,
         session_duration_minutes: 60,
       });

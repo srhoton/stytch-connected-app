@@ -2,14 +2,23 @@ import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useSearchParams, Navigate } from 'react-router-dom';
 import { StytchB2B } from '@stytch/react/b2b';
 import { useStytchMemberSession, useStytchB2BClient } from '@stytch/react/b2b';
-import { ErrorBoundary, SessionDisplay, LoadingSpinner } from '@/components';
+import { ErrorBoundary, AuthErrorBoundary, SessionDisplay, LoadingSpinner } from '@/components';
 import { sanitizeReturnUrl } from '@/utils/urlValidator';
 import { Products } from '@stytch/vanilla-js/b2b';
+import type { StytchSession } from '@/types';
+import { useNavigation } from '@/services/navigation';
+
+// Define Stytch event types
+interface StytchAuthEvent {
+  type: 'AUTHENTICATE_SUCCESS' | 'AUTHENTICATE_ERROR' | 'ORGANIZATION_SELECTED' | 'DISCOVERY_STARTED';
+  data?: unknown;
+}
 
 // Component to handle the main authentication flow
 const AuthenticationFlow: React.FC = () => {
   const { session, isInitialized } = useStytchMemberSession();
   const stytchClient = useStytchB2BClient();
+  const navigation = useNavigation();
   const [searchParams] = useSearchParams();
   const returnUrl = searchParams.get('return_url');
 
@@ -29,10 +38,10 @@ const AuthenticationFlow: React.FC = () => {
       if (validatedUrl) {
         // Clear any stored return URL and redirect
         sessionStorage.removeItem('auth_return_url');
-        window.location.href = validatedUrl;
+        navigation.navigateTo(validatedUrl);
       }
     }
-  }, [session, returnUrl]);
+  }, [session, returnUrl, navigation]);
 
   // Store return URL for post-auth redirect
   useEffect(() => {
@@ -78,10 +87,12 @@ const AuthenticationFlow: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          <SessionDisplay
-            session={session}
-            onLogout={handleLogout}
-          />
+          <AuthErrorBoundary>
+            <SessionDisplay
+              session={session as StytchSession}
+              onLogout={handleLogout}
+            />
+          </AuthErrorBoundary>
         </div>
       </div>
     );
@@ -102,50 +113,54 @@ const AuthenticationFlow: React.FC = () => {
         <p className="text-gray-600 mt-2 text-base">Sign in to continue to your account</p>
       </div>
       <div className="w-full max-w-md">
-        <StytchB2B
-          config={{
-            products: [Products.passwords],
-            authFlowType: 'Discovery',
-            disableCreateOrganization: true,
-            passwordOptions: {
-              loginRedirectURL: window.location.origin,
-              resetPasswordRedirectURL: `${window.location.origin}/authenticate`,
-            },
-            sessionOptions: {
-              sessionDurationMinutes: 60,
-            },
-          }}
-          styles={{
-            container: {
-              width: '100%',
-              backgroundColor: '#ffffff',
-              borderRadius: '12px',
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-              padding: '40px',
-            },
-            primaryColor: '#cf2027',
-            fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-          }}
-          callbacks={{
-            onEvent: (event) => {
-              // Stytch authentication event received
+        <AuthErrorBoundary>
+          <StytchB2B
+            config={{
+              products: [Products.passwords],
+              authFlowType: 'Discovery',
+              disableCreateOrganization: true,
+              passwordOptions: {
+                loginRedirectURL: window.location.origin,
+                resetPasswordRedirectURL: `${window.location.origin}/authenticate`,
+              },
+              sessionOptions: {
+                sessionDurationMinutes: 60,
+              },
+            }}
+            styles={{
+              container: {
+                width: '100%',
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                // boxShadow and padding removed - not supported in Stytch styles type
+              },
+              colors: {
+                primary: '#cf2027',
+              },
+              fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+            }}
+            callbacks={{
+              onEvent: (event) => {
+                // Stytch authentication event received
 
-              // After successful authentication, check for return URL
-              if (event.type === 'AUTHENTICATE_SUCCESS') {
-                const savedReturnUrl = sessionStorage.getItem('auth_return_url');
-                if (savedReturnUrl) {
-                  sessionStorage.removeItem('auth_return_url');
-                  setTimeout(() => {
-                    window.location.href = savedReturnUrl;
-                  }, 100);
+                // After successful authentication, check for return URL
+                const authEvent = event as unknown as StytchAuthEvent;
+                if (authEvent.type === 'AUTHENTICATE_SUCCESS') {
+                  const savedReturnUrl = sessionStorage.getItem('auth_return_url');
+                  if (savedReturnUrl) {
+                    sessionStorage.removeItem('auth_return_url');
+                    setTimeout(() => {
+                      window.location.href = savedReturnUrl;
+                    }, 100);
+                  }
                 }
-              }
-            },
-            onError: (error) => {
-              console.error('Stytch error:', error);
-            },
-          }}
-        />
+              },
+              onError: (error) => {
+                console.error('Stytch error:', error);
+              },
+            }}
+          />
+        </AuthErrorBoundary>
       </div>
     </div>
   );

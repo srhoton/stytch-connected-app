@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, memo } from 'react';
 import { Button } from '@/components/ui';
 import type { StytchSession } from '@/types';
 
@@ -8,13 +8,29 @@ export interface SessionDisplayProps {
   isLoading?: boolean;
 }
 
-export const SessionDisplay: React.FC<SessionDisplayProps> = ({
+const SessionDisplayComponent: React.FC<SessionDisplayProps> = ({
   session,
   onLogout,
   isLoading = false,
 }) => {
+  // Memoize formatted dates to avoid recalculation on every render
+  const formattedDates = useMemo(() => {
+    if (!session.session) {return null;}
+    
+    return {
+      started: new Date(session.session.started_at).toLocaleString(),
+      lastAccessed: new Date(session.session.last_accessed_at).toLocaleString(),
+      expires: new Date(session.session.expires_at).toLocaleString(),
+    };
+  }, [session.session]);
+
+  const memberCreatedDate = useMemo(() => {
+    if (!session.member) {return null;}
+    return new Date(session.member.created_at).toLocaleDateString();
+  }, [session.member]);
+
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <main className="min-h-screen bg-gray-50 py-12 px-4" role="main">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <div className="text-center mb-8">
@@ -35,11 +51,11 @@ export const SessionDisplay: React.FC<SessionDisplayProps> = ({
             </div>
             
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome Back!
+              Successfully Authenticated
             </h1>
             
             <p className="text-lg text-gray-600">
-              You are successfully authenticated with Stytch B2B
+              You are now logged in to your account.
             </p>
           </div>
 
@@ -61,14 +77,14 @@ export const SessionDisplay: React.FC<SessionDisplayProps> = ({
                     
                     <div>
                       <span className="font-medium text-gray-700">Email:</span>
-                      <p className="text-gray-600">
+                      <p className="text-gray-600" data-testid="user-email">
                         {session.member.email_address}
                       </p>
                     </div>
                     
                     <div>
                       <span className="font-medium text-gray-700">Name:</span>
-                      <p className="text-gray-600">
+                      <p className="text-gray-600" data-testid="user-name">
                         {session.member.name || 'Not set'}
                       </p>
                     </div>
@@ -98,7 +114,7 @@ export const SessionDisplay: React.FC<SessionDisplayProps> = ({
                     <div>
                       <span className="font-medium text-gray-700">Created:</span>
                       <p className="text-gray-600">
-                        {new Date(session.member.created_at).toLocaleDateString()}
+                        {memberCreatedDate}
                       </p>
                     </div>
                   </div>
@@ -114,8 +130,8 @@ export const SessionDisplay: React.FC<SessionDisplayProps> = ({
                     </div>
                     
                     <div>
-                      <span className="font-medium text-gray-700">Organization Name:</span>
-                      <p className="text-gray-600">
+                      <span className="font-medium text-gray-700">Organization:</span>
+                      <p className="text-gray-600" data-testid="org-name">
                         {session.organization.organization_name}
                       </p>
                     </div>
@@ -143,21 +159,21 @@ export const SessionDisplay: React.FC<SessionDisplayProps> = ({
                     <div>
                       <span className="font-medium text-gray-700">Started:</span>
                       <p className="text-gray-600">
-                        {new Date(session.session.started_at).toLocaleString()}
+                        {formattedDates?.started}
                       </p>
                     </div>
                     
                     <div>
                       <span className="font-medium text-gray-700">Last Accessed:</span>
                       <p className="text-gray-600">
-                        {new Date(session.session.last_accessed_at).toLocaleString()}
+                        {formattedDates?.lastAccessed}
                       </p>
                     </div>
                     
                     <div>
-                      <span className="font-medium text-gray-700">Expires:</span>
-                      <p className="text-gray-600">
-                        {new Date(session.session.expires_at).toLocaleString()}
+                      <span className="font-medium text-gray-700">Session Expires:</span>
+                      <p className="text-gray-600" data-testid="session-expires">
+                        {formattedDates?.expires}
                       </p>
                     </div>
                     
@@ -186,8 +202,10 @@ export const SessionDisplay: React.FC<SessionDisplayProps> = ({
               variant="danger"
               loading={isLoading}
               disabled={isLoading}
+              type="button"
+              aria-label={isLoading ? 'Logging out' : 'Logout'}
             >
-              Sign Out
+              {isLoading ? 'Logging out...' : 'Logout'}
             </Button>
             
             <p className="mt-6 text-sm text-gray-500">
@@ -197,6 +215,16 @@ export const SessionDisplay: React.FC<SessionDisplayProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
+
+// Memoize the component to prevent unnecessary re-renders
+export const SessionDisplay = memo(SessionDisplayComponent, (prevProps, nextProps) => {
+  // Custom comparison function for optimization
+  return (
+    prevProps.isLoading === nextProps.isLoading &&
+    prevProps.session?.session_token === nextProps.session?.session_token &&
+    prevProps.session?.session?.session_id === nextProps.session?.session?.session_id
+  );
+});

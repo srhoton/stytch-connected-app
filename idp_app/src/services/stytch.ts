@@ -1,18 +1,29 @@
 import { StytchB2BUIClient } from '@stytch/vanilla-js/b2b';
 import type { 
-  StytchConfig, 
   StytchSession, 
   LoginCredentials,
   PasswordResetRequest,
   PasswordResetConfirm,
   AuthError
 } from '@/types';
+import { getStytchConfig } from '@/utils/env';
+import { getNavigationService } from '@/services/navigation';
 
-const STYTCH_CONFIG: StytchConfig = {
-  projectId: import.meta.env.VITE_STYTCH_PROJECT_ID || '',
-  publicToken: import.meta.env.VITE_STYTCH_PUBLIC_TOKEN || '',
+// Define cookie options interface
+interface StytchCookieOptions {
+  domain?: string;
+  path?: string;
+}
+
+// Get validated configuration from env utility
+const stytchEnvConfig = getStytchConfig();
+const navigation = getNavigationService();
+
+const STYTCH_CONFIG = {
+  projectId: stytchEnvConfig.projectId,
+  publicToken: stytchEnvConfig.publicToken,
   cookieOptions: {
-    domain: import.meta.env.VITE_STYTCH_COOKIE_DOMAIN || window.location.hostname,
+    domain: import.meta.env['VITE_STYTCH_COOKIE_DOMAIN'] || navigation.getHostname(),
     path: '/',
   },
 };
@@ -31,7 +42,7 @@ export const initializeStytch = async (): Promise<StytchB2BUIClient> => {
   
   initializationPromise = (async (): Promise<StytchB2BUIClient> => {
     stytchClient = new StytchB2BUIClient(STYTCH_CONFIG.publicToken, {
-      cookieOptions: STYTCH_CONFIG.cookieOptions,
+      cookieOptions: STYTCH_CONFIG.cookieOptions as StytchCookieOptions,
     });
     // Wait for the client to be fully initialized
     await new Promise<void>(resolve => setTimeout(resolve, 100));
@@ -94,7 +105,7 @@ export const authenticateWithPassword = async (
       storeOrganization(orgToUse);
       
       // The session token is already set by the SDK automatically
-      return response as StytchSession;
+      return response as unknown as StytchSession;
     }
     
     throw new Error('Authentication failed - unexpected response');
@@ -139,11 +150,11 @@ export const getCurrentSession = async (): Promise<StytchSession | null> => {
 
     // Validate the session
     const response = await client.session.authenticate({
-      session_token: sessionToken,
+      session_duration_minutes: 60,
     });
 
     if (response.status_code === 200) {
-      return response as StytchSession;
+      return response as unknown as StytchSession;
     } else {
       return null;
     }
@@ -182,7 +193,7 @@ export const requestPasswordReset = async (request: PasswordResetRequest): Promi
     const response = await client.passwords.resetByEmailStart({
       email_address: request.email,
       organization_id: organizationId,
-      reset_password_redirect_url: `${window.location.origin}/reset-password`,
+      reset_password_redirect_url: `${navigation.getOrigin()}/reset-password`,
       reset_password_expiration_minutes: 60,
     });
 
@@ -210,14 +221,14 @@ export const confirmPasswordReset = async (confirm: PasswordResetConfirm): Promi
     const client = await initializeStytch();
     
     const response = await client.passwords.resetByEmail({
-      token: confirm.token,
+      password_reset_token: confirm.token,
       password: confirm.password,
       session_duration_minutes: 60,
     });
 
     if (response.status_code === 200) {
       // The session token is automatically stored by the SDK
-      return response as StytchSession;
+      return response as unknown as StytchSession;
     } else {
       throw new Error('Password reset failed');
     }
