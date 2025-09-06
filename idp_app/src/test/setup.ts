@@ -23,6 +23,9 @@ Object.defineProperty(window, 'location', {
     search: '',
     hash: '',
     origin: 'http://localhost:3001',
+    reload: vi.fn(),
+    assign: vi.fn(),
+    replace: vi.fn(),
   },
   writable: true,
 })

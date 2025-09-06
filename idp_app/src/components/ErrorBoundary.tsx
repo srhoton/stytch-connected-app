@@ -55,8 +55,8 @@ export function ErrorBoundary({
           console.error('Error caught by ErrorBoundary:', error, errorInfo);
         }
         // Log to error reporting service in production
-        if (onError) {
-          onError(error, errorInfo);
+        if (onError && errorInfo.componentStack) {
+          onError(error, { componentStack: errorInfo.componentStack });
         }
       }}
       onReset={() => {

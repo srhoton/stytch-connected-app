@@ -4,7 +4,7 @@
  * List of allowed domains for redirects from environment variables
  */
 export const getAllowedDomains = (): string[] => {
-  const envDomains = import.meta.env.VITE_ALLOWED_REDIRECT_DOMAINS;
+  const envDomains = import.meta.env['VITE_ALLOWED_REDIRECT_DOMAINS'];
   if (envDomains) {
     return envDomains.split(',').map((domain: string) => domain.trim());
   }
@@ -86,7 +86,7 @@ export const sanitizeReturnUrl = (url: string | null): string | null => {
  * Gets the default redirect URL for after login
  */
 export const getDefaultRedirectUrl = (): string => {
-  return import.meta.env.VITE_DEFAULT_REDIRECT_URL || '/';
+  return import.meta.env['VITE_DEFAULT_REDIRECT_URL'] || '/';
 };
 
 /**

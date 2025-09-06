@@ -3,3 +3,4 @@ export * from './forms';
 export * from './layout';
 export { SessionDisplay } from './SessionDisplay';
 export type { SessionDisplayProps } from './SessionDisplay';
+export { AuthErrorBoundary } from './AuthErrorBoundary';

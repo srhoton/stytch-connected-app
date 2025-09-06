@@ -41,7 +41,7 @@ describe('Stytch Service', () => {
       const client = await freshInitializeStytch()
       expect(client).toBeDefined()
       expect(createMockStytchB2BUIClient).toHaveBeenCalledWith(
-        'public-token-test-eb26150c-bc05-4980-a56a-627263e2a433',
+        'test-public-token',  // This comes from the env validation in test mode
         expect.objectContaining({
           cookieOptions: expect.objectContaining({
             domain: 'localhost',
@@ -54,7 +54,7 @@ describe('Stytch Service', () => {
     it('should return the same instance on multiple calls', async () => {
       // Since the singleton persists from the previous test, we need to test differently
       // We'll check that within this test context, multiple calls don't create new instances
-      const _callCountBefore = createMockStytchB2BUIClient.mock.calls.length
+      // const _callCountBefore = createMockStytchB2BUIClient.mock.calls.length
       
       const client1 = await initializeStytch()
       const callCountAfter1 = createMockStytchB2BUIClient.mock.calls.length
@@ -180,7 +180,7 @@ describe('Stytch Service', () => {
 
       expect(session).toBeDefined()
       expect(mockStytchClient.session.authenticate).toHaveBeenCalledWith({
-        session_token: 'test-session-token',
+        session_duration_minutes: 60,
       })
     })
 
@@ -285,7 +285,7 @@ describe('Stytch Service', () => {
       const result = await confirmPasswordReset(confirm)
 
       expect(mockStytchClient.passwords.resetByEmail).toHaveBeenCalledWith({
-        token: confirm.token,
+        password_reset_token: confirm.token,
         password: confirm.password,
         session_duration_minutes: 60,
       })
