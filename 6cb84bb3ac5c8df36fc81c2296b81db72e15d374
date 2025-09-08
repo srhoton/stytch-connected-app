@@ -1,0 +1,3 @@
+Session prompts:
+1. 'Ok, we need to make one change. In the Stytch client config, we need to main sure the domain is set to '\''fullbay.com'\'', and we need to make sure the availableToSubdomains flag is set to true.'
+2. 'Ok. So now when I hit the cloudfront site from a site trying to auth (https://anz.sb.fullbay.com/), I get the login page, login, and get the '\''redirecting'\'' screen. The URL in my browser is https://auth.sb.fullbay.com/?return_url=https%3A%2F%2Fanz.sb.fullbay.com%2F, but I don'\''t seem to ever redirect there. Can you troubleshoot this?'
