@@ -13,6 +13,7 @@ import { getNavigationService } from '@/services/navigation';
 interface StytchCookieOptions {
   domain?: string;
   path?: string;
+  availableToSubdomains?: boolean;
 }
 
 // Get validated configuration from env utility
@@ -23,8 +24,9 @@ const STYTCH_CONFIG = {
   projectId: stytchEnvConfig.projectId,
   publicToken: stytchEnvConfig.publicToken,
   cookieOptions: {
-    domain: import.meta.env['VITE_STYTCH_COOKIE_DOMAIN'] || navigation.getHostname(),
+    domain: 'fullbay.com',  // Set to root domain for cross-subdomain sharing
     path: '/',
+    availableToSubdomains: true,  // Enable cookie sharing across subdomains
   },
 };
 

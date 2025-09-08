@@ -34,11 +34,16 @@ const AuthenticationFlow: React.FC = () => {
   // Handle redirect when authenticated with return URL
   useEffect(() => {
     if (session && returnUrl) {
+      console.log('[Auth] Session detected with return URL:', returnUrl);
       const validatedUrl = sanitizeReturnUrl(returnUrl);
+      console.log('[Auth] Validated URL:', validatedUrl);
       if (validatedUrl) {
         // Clear any stored return URL and redirect
         sessionStorage.removeItem('auth_return_url');
+        console.log('[Auth] Redirecting to:', validatedUrl);
         navigation.navigateTo(validatedUrl);
+      } else {
+        console.error('[Auth] Return URL failed validation:', returnUrl);
       }
     }
   }, [session, returnUrl, navigation]);

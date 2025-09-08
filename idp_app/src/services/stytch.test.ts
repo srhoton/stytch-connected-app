@@ -44,8 +44,9 @@ describe('Stytch Service', () => {
         'test-public-token',  // This comes from the env validation in test mode
         expect.objectContaining({
           cookieOptions: expect.objectContaining({
-            domain: 'localhost',
+            domain: 'fullbay.com',
             path: '/',
+            availableToSubdomains: true,
           }),
         })
       )
