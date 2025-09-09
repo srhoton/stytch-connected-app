@@ -1,0 +1,11 @@
+Session prompts:
+
+1. "Ok, can you remove the custom names for the JWT and session in the Stytch config now? It turns out we don't need it."
+
+2. "Ok, can you have the code-quality-reviewer subagent look at the changes we made in the idp_app?"
+
+3. "Ok, please fix the critical issues."
+
+4. "Ok, please redeploy the idp_app site with the terraform."
+
+5. "ok. Please commit your work, add prompts in this session to the commit via git notes, push it, and using your github mcp integration, create a PR."
