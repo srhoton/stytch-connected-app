@@ -2,10 +2,14 @@ import { vi } from 'vitest'
 import type { StytchSession, AuthError } from '@/types'
 
 export const mockStytchSession: StytchSession = {
+  status_code: 200,
+  request_id: 'test-request-id',
+  member_id: 'test-member-id',
+  organization_id: 'test-org-id',
   session_token: 'test-session-token',
   session_jwt: 'test-session-jwt',
-  session: {
-    session_id: 'test-session-id',
+  member_session: {
+    member_session_id: 'test-session-id',
     member_id: 'test-member-id',
     organization_id: 'test-org-id',
     started_at: '2024-01-01T00:00:00Z',

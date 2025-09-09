@@ -2,6 +2,12 @@ import React, { useMemo, memo } from 'react';
 import { Button } from '@/components/ui';
 import type { StytchSession } from '@/types';
 
+interface AuthenticationFactor {
+  type: string;
+  delivery_method: string;
+  last_authenticated_at: string;
+}
+
 export interface SessionDisplayProps {
   session: StytchSession;
   onLogout: () => void;
@@ -15,14 +21,14 @@ const SessionDisplayComponent: React.FC<SessionDisplayProps> = ({
 }) => {
   // Memoize formatted dates to avoid recalculation on every render
   const formattedDates = useMemo(() => {
-    if (!session.session) {return null;}
+    if (!session.member_session) {return null;}
     
     return {
-      started: new Date(session.session.started_at).toLocaleString(),
-      lastAccessed: new Date(session.session.last_accessed_at).toLocaleString(),
-      expires: new Date(session.session.expires_at).toLocaleString(),
+      started: new Date(session.member_session.started_at).toLocaleString(),
+      lastAccessed: new Date(session.member_session.last_accessed_at).toLocaleString(),
+      expires: new Date(session.member_session.expires_at).toLocaleString(),
     };
-  }, [session.session]);
+  }, [session.member_session]);
 
   const memberCreatedDate = useMemo(() => {
     if (!session.member) {return null;}
@@ -147,12 +153,12 @@ const SessionDisplayComponent: React.FC<SessionDisplayProps> = ({
                   </div>
                 )}
                 
-                {session.session && (
+                {session.member_session && (
                   <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
                     <div>
                       <span className="font-medium text-gray-700">Session ID:</span>
                       <p className="text-gray-600 font-mono text-xs break-all">
-                        {session.session.session_id}
+                        {session.member_session.member_session_id}
                       </p>
                     </div>
                     
@@ -180,7 +186,7 @@ const SessionDisplayComponent: React.FC<SessionDisplayProps> = ({
                     <div className="md:col-span-2">
                       <span className="font-medium text-gray-700">Authentication Methods:</span>
                       <div className="mt-1 flex flex-wrap gap-2">
-                        {session.session.authentication_factors.map((factor, index) => (
+                        {session.member_session.authentication_factors.map((factor: AuthenticationFactor, index: number) => (
                           <span
                             key={index}
                             className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800"
@@ -225,6 +231,6 @@ export const SessionDisplay = memo(SessionDisplayComponent, (prevProps, nextProp
   return (
     prevProps.isLoading === nextProps.isLoading &&
     prevProps.session?.session_token === nextProps.session?.session_token &&
-    prevProps.session?.session?.session_id === nextProps.session?.session?.session_id
+    prevProps.session?.member_session?.member_session_id === nextProps.session?.member_session?.member_session_id
   );
 });

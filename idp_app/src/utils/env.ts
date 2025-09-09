@@ -5,6 +5,7 @@
 export interface EnvConfig {
   VITE_STYTCH_PROJECT_ID: string;
   VITE_STYTCH_PUBLIC_TOKEN: string;
+  VITE_STYTCH_COOKIE_DOMAIN?: string;  // Optional - falls back to current domain
   VITE_API_URL?: string;  // Made optional since it's not always needed
   NODE_ENV: 'development' | 'production' | 'test';
   DEV: boolean;
@@ -32,6 +33,7 @@ export function getEnvConfig(): EnvConfig {
     return {
       VITE_STYTCH_PROJECT_ID: 'test-project-id',
       VITE_STYTCH_PUBLIC_TOKEN: 'test-public-token',
+      VITE_STYTCH_COOKIE_DOMAIN: 'test.example.com',
       VITE_API_URL: undefined,  // Optional field
       NODE_ENV: 'test',
       DEV: false,
@@ -49,6 +51,7 @@ export function getEnvConfig(): EnvConfig {
       'VITE_STYTCH_PUBLIC_TOKEN',
       import.meta.env['VITE_STYTCH_PUBLIC_TOKEN']
     ),
+    VITE_STYTCH_COOKIE_DOMAIN: import.meta.env['VITE_STYTCH_COOKIE_DOMAIN'],  // Optional, no validation
     VITE_API_URL: import.meta.env['VITE_API_URL'],  // Optional, no validation
     NODE_ENV: (import.meta.env.NODE_ENV || 'development') as EnvConfig['NODE_ENV'],
     DEV: import.meta.env.DEV ?? false,
@@ -102,6 +105,7 @@ export function getStytchConfig() {
   return {
     projectId: env.VITE_STYTCH_PROJECT_ID,
     publicToken: env.VITE_STYTCH_PUBLIC_TOKEN,
+    cookieDomain: env.VITE_STYTCH_COOKIE_DOMAIN || window.location.hostname,
   };
 }
 

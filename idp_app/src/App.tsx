@@ -14,6 +14,70 @@ interface StytchAuthEvent {
   data?: unknown;
 }
 
+// Convert MemberSession from hook to our StytchSession format
+const convertToStytchSession = (memberSession: any): StytchSession | null => {
+  if (!memberSession) return null;
+  
+  // The MemberSession from the hook has a different structure
+  // We need to adapt it to our StytchSession interface
+  return {
+    status_code: 200,
+    request_id: 'react-hook-session',
+    member_id: memberSession.member_id,
+    organization_id: memberSession.organization_id,
+    session_token: memberSession.session_token || '',
+    session_jwt: memberSession.session_jwt || '',
+    member_session: {
+      member_session_id: memberSession.member_session_id,
+      member_id: memberSession.member_id,
+      organization_id: memberSession.organization_id,
+      started_at: memberSession.started_at,
+      last_accessed_at: memberSession.last_accessed_at,
+      expires_at: memberSession.expires_at,
+      authentication_factors: memberSession.authentication_factors || [],
+    },
+    member: memberSession.member,
+    organization: memberSession.organization,
+  };
+};
+
+// Helper functions for return URL management
+const AUTH_RETURN_URL_KEY = 'auth_return_url';
+
+const storeReturnUrl = (url: string): void => {
+  const validatedUrl = sanitizeReturnUrl(url);
+  if (validatedUrl) {
+    sessionStorage.setItem(AUTH_RETURN_URL_KEY, validatedUrl);
+  }
+};
+
+const getStoredReturnUrl = (): string | null => {
+  return sessionStorage.getItem(AUTH_RETURN_URL_KEY);
+};
+
+const clearStoredReturnUrl = (): void => {
+  sessionStorage.removeItem(AUTH_RETURN_URL_KEY);
+};
+
+const handleReturnUrlRedirect = (navigation: ReturnType<typeof useNavigation>, returnUrl?: string | null): boolean => {
+  // Try to use provided returnUrl first, then check stored URL
+  const urlToValidate = returnUrl || getStoredReturnUrl();
+  
+  if (!urlToValidate) {
+    return false;
+  }
+  
+  const validatedUrl = sanitizeReturnUrl(urlToValidate);
+  if (validatedUrl) {
+    clearStoredReturnUrl();
+    navigation.navigateTo(validatedUrl);
+    return true;
+  } else {
+    console.error('[Auth] Return URL failed validation:', urlToValidate);
+    return false;
+  }
+};
+
 // Component to handle the main authentication flow
 const AuthenticationFlow: React.FC = () => {
   const { session, isInitialized } = useStytchMemberSession();
@@ -34,22 +98,15 @@ const AuthenticationFlow: React.FC = () => {
   // Handle redirect when authenticated with return URL
   useEffect(() => {
     if (session && returnUrl) {
-      const validatedUrl = sanitizeReturnUrl(returnUrl);
-      if (validatedUrl) {
-        // Clear any stored return URL and redirect
-        sessionStorage.removeItem('auth_return_url');
-        navigation.navigateTo(validatedUrl);
-      }
+      // Session detected with return URL - validate and redirect
+      handleReturnUrlRedirect(navigation, returnUrl);
     }
   }, [session, returnUrl, navigation]);
 
   // Store return URL for post-auth redirect
   useEffect(() => {
     if (returnUrl && !session) {
-      const validatedUrl = sanitizeReturnUrl(returnUrl);
-      if (validatedUrl) {
-        sessionStorage.setItem('auth_return_url', validatedUrl);
-      }
+      storeReturnUrl(returnUrl);
     }
   }, [returnUrl, session]);
 
@@ -84,12 +141,21 @@ const AuthenticationFlow: React.FC = () => {
     }
 
     // Show session details
+    const stytchSession = convertToStytchSession(session);
+    if (!stytchSession) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-red-600">Invalid session format</div>
+        </div>
+      );
+    }
+    
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <AuthErrorBoundary>
             <SessionDisplay
-              session={session as StytchSession}
+              session={stytchSession}
               onLogout={handleLogout}
             />
           </AuthErrorBoundary>
@@ -142,13 +208,12 @@ const AuthenticationFlow: React.FC = () => {
             callbacks={{
               onEvent: (event) => {
                 // Stytch authentication event received
-
-                // After successful authentication, check for return URL
                 const authEvent = event as unknown as StytchAuthEvent;
                 if (authEvent.type === 'AUTHENTICATE_SUCCESS') {
-                  const savedReturnUrl = sessionStorage.getItem('auth_return_url');
+                  // After successful authentication, check for return URL
+                  const savedReturnUrl = getStoredReturnUrl();
                   if (savedReturnUrl) {
-                    sessionStorage.removeItem('auth_return_url');
+                    clearStoredReturnUrl();
                     setTimeout(() => {
                       window.location.href = savedReturnUrl;
                     }, 100);

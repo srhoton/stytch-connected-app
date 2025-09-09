@@ -46,11 +46,19 @@ export const isValidReturnUrl = (url: string): boolean => {
     
     // First check against allowed domains
     if (allowedDomains.length > 0) {
-      const isAllowed = allowedDomains.some(domain => 
-        host === domain || 
-        host === `www.${domain}` ||
-        host.endsWith(`.${domain}`)
-      );
+      const isAllowed = allowedDomains.some(domain => {
+        // Handle wildcard subdomain patterns (*.domain.com)
+        if (domain.startsWith('*.')) {
+          const baseDomain = domain.slice(2); // Remove *.
+          return host === baseDomain || host.endsWith(`.${baseDomain}`);
+        }
+        // Exact match or subdomain match
+        return (
+          host === domain || 
+          host === `www.${domain}` ||
+          host.endsWith(`.${domain}`)
+        );
+      });
       if (isAllowed) {return true;}
     }
     
@@ -176,11 +184,19 @@ export const isValidRedirectUrl = (url: string): boolean => {
     
     // First check against allowed domains
     if (allowedDomains.length > 0) {
-      const isAllowed = allowedDomains.some(domain => 
-        host === domain || 
-        host === `www.${domain}` ||
-        host.endsWith(`.${domain}`)
-      );
+      const isAllowed = allowedDomains.some(domain => {
+        // Handle wildcard subdomain patterns (*.domain.com)
+        if (domain.startsWith('*.')) {
+          const baseDomain = domain.slice(2); // Remove *.
+          return host === baseDomain || host.endsWith(`.${baseDomain}`);
+        }
+        // Exact match or subdomain match
+        return (
+          host === domain || 
+          host === `www.${domain}` ||
+          host.endsWith(`.${domain}`)
+        );
+      });
       if (isAllowed) {return true;}
     }
     

@@ -29,3 +29,26 @@ resource "aws_route53_record" "static_site_ipv6" {
     evaluate_target_health = false
   }
 }
+
+# Route53 CNAME record for Stytch login subdomain
+resource "aws_route53_record" "stytch_login" {
+  zone_id = data.aws_route53_zone.parent_zone.zone_id
+  name    = "login.sb.fullbay.com"
+  type    = "CNAME"
+  ttl     = 300
+  records = ["ripe-knee-5456.customers.stytch.dev"]
+}
+
+# Route53 CAA records for certificate authority authorization
+resource "aws_route53_record" "caa_records" {
+  zone_id = data.aws_route53_zone.parent_zone.zone_id
+  name    = var.parent_zone_domain
+  type    = "CAA"
+  ttl     = 300
+
+  records = [
+    "0 issue \"letsencrypt.org\"",
+    "0 issue \"ssl.com\"",
+    "0 issue \"pki.goog\""
+  ]
+}

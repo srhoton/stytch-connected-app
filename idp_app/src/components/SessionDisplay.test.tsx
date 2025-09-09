@@ -5,10 +5,14 @@ import { SessionDisplay } from './SessionDisplay';
 import type { StytchSession } from '@/types';
 
 const mockSession: StytchSession = {
+  status_code: 200,
+  request_id: 'test-request-id',
+  member_id: 'member-123',
+  organization_id: 'org-123',
   session_token: 'test-token',
   session_jwt: 'test-jwt',
-  session: {
-    session_id: 'session-123',
+  member_session: {
+    member_session_id: 'session-123',
     member_id: 'member-123',
     organization_id: 'org-123',
     started_at: '2024-01-01T10:00:00Z',
@@ -105,7 +109,21 @@ describe('SessionDisplay', () => {
 
   it('should handle missing optional fields gracefully', () => {
     const minimalSession: StytchSession = {
+      status_code: 200,
+      request_id: 'test-request-id',
+      member_id: 'member-123',
+      organization_id: 'org-123',
       session_token: 'test-token',
+      session_jwt: 'test-jwt',
+      member_session: {
+        member_session_id: 'session-123',
+        member_id: 'member-123',
+        organization_id: 'org-123',
+        started_at: '2024-01-01T10:00:00Z',
+        last_accessed_at: '2024-01-01T10:30:00Z',
+        expires_at: '2024-01-01T11:00:00Z',
+        authentication_factors: [],
+      },
       member: {
         member_id: 'member-123',
         email_address: 'test@example.com',
@@ -115,6 +133,10 @@ describe('SessionDisplay', () => {
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
         is_admin: false,
+      },
+      organization: {
+        organization_id: 'org-123',
+        organization_name: 'Test Organization',
       },
     };
 

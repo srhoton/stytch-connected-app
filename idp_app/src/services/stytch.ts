@@ -6,27 +6,14 @@ import type {
   PasswordResetConfirm,
   AuthError
 } from '@/types';
-import { getStytchConfig } from '@/utils/env';
+import { STYTCH_CONFIG } from '@/config/stytch.config';
 import { getNavigationService } from '@/services/navigation';
+import { toStytchSession, isSuccessfulAuthResponse } from '@/utils/typeGuards';
 
-// Define cookie options interface
-interface StytchCookieOptions {
-  domain?: string;
-  path?: string;
-}
-
-// Get validated configuration from env utility
-const stytchEnvConfig = getStytchConfig();
 const navigation = getNavigationService();
 
-const STYTCH_CONFIG = {
-  projectId: stytchEnvConfig.projectId,
-  publicToken: stytchEnvConfig.publicToken,
-  cookieOptions: {
-    domain: import.meta.env['VITE_STYTCH_COOKIE_DOMAIN'] || navigation.getHostname(),
-    path: '/',
-  },
-};
+// Constants
+const STYTCH_INIT_DELAY_MS = 100; // Allow Stytch SDK to complete internal initialization
 
 let stytchClient: StytchB2BUIClient | null = null;
 let initializationPromise: Promise<StytchB2BUIClient> | null = null;
@@ -41,11 +28,12 @@ export const initializeStytch = async (): Promise<StytchB2BUIClient> => {
   }
   
   initializationPromise = (async (): Promise<StytchB2BUIClient> => {
+    // Initialize with centralized configuration
     stytchClient = new StytchB2BUIClient(STYTCH_CONFIG.publicToken, {
-      cookieOptions: STYTCH_CONFIG.cookieOptions as StytchCookieOptions,
+      cookieOptions: STYTCH_CONFIG.cookieOptions,
     });
     // Wait for the client to be fully initialized
-    await new Promise<void>(resolve => setTimeout(resolve, 100));
+    await new Promise<void>(resolve => setTimeout(resolve, STYTCH_INIT_DELAY_MS));
     return stytchClient;
   })();
   
@@ -98,14 +86,14 @@ export const authenticateWithPassword = async (
     
     // Authentication response received
     
-    if (response.status_code === 200 && response.session_token) {
+    if (isSuccessfulAuthResponse(response)) {
       // Authentication successful
       
       // Store the organization for future logins
       storeOrganization(orgToUse);
       
       // The session token is already set by the SDK automatically
-      return response as unknown as StytchSession;
+      return toStytchSession(response);
     }
     
     throw new Error('Authentication failed - unexpected response');
@@ -153,8 +141,8 @@ export const getCurrentSession = async (): Promise<StytchSession | null> => {
       session_duration_minutes: 60,
     });
 
-    if (response.status_code === 200) {
-      return response as unknown as StytchSession;
+    if (isSuccessfulAuthResponse(response)) {
+      return toStytchSession(response);
     } else {
       return null;
     }
@@ -226,9 +214,9 @@ export const confirmPasswordReset = async (confirm: PasswordResetConfirm): Promi
       session_duration_minutes: 60,
     });
 
-    if (response.status_code === 200) {
+    if (isSuccessfulAuthResponse(response)) {
       // The session token is automatically stored by the SDK
-      return response as unknown as StytchSession;
+      return toStytchSession(response);
     } else {
       throw new Error('Password reset failed');
     }
