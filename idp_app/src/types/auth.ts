@@ -46,18 +46,21 @@ export interface StytchOrganization {
 }
 
 export interface StytchSession {
-  session_token?: string;
-  session_jwt?: string;
-  member?: StytchMember;
-  organization?: StytchOrganization;
-  session?: {
-    session_id: string;
+  status_code: number;
+  request_id: string;
+  member_id: string;
+  organization_id: string;
+  session_token: string;
+  session_jwt: string;
+  member: StytchMember;
+  organization: StytchOrganization;
+  member_session: {
+    member_session_id: string;
     member_id: string;
     organization_id: string;
     started_at: string;
     last_accessed_at: string;
     expires_at: string;
-    attributes?: Record<string, unknown>;
     authentication_factors: Array<{
       type: string;
       delivery_method: string;

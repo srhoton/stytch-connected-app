@@ -10,6 +10,25 @@ vi.mock('@stytch/vanilla-js/b2b', () => ({
   StytchB2BUIClient: createMockStytchB2BUIClient,
 }))
 
+// Mock the centralized config
+vi.mock('@/config/stytch.config', () => ({
+  STYTCH_CONFIG: {
+    projectId: 'test-project-id',
+    publicToken: 'test-public-token',
+    cookieOptions: {
+      domain: 'test.example.com',
+      path: '/',
+      availableToSubdomains: true,
+    },
+  },
+  STYTCH_PUBLIC_TOKEN: 'test-public-token',
+  STYTCH_COOKIE_OPTIONS: {
+    domain: 'test.example.com',
+    path: '/',
+    availableToSubdomains: true,
+  },
+}))
+
 // Now import the service after mocking
 import {
   initializeStytch,
@@ -44,7 +63,7 @@ describe('Stytch Service', () => {
         'test-public-token',  // This comes from the env validation in test mode
         expect.objectContaining({
           cookieOptions: expect.objectContaining({
-            domain: 'fullbay.com',
+            domain: 'test.example.com',
             path: '/',
             availableToSubdomains: true,
           }),

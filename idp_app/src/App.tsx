@@ -14,6 +14,33 @@ interface StytchAuthEvent {
   data?: unknown;
 }
 
+// Convert MemberSession from hook to our StytchSession format
+const convertToStytchSession = (memberSession: any): StytchSession | null => {
+  if (!memberSession) return null;
+  
+  // The MemberSession from the hook has a different structure
+  // We need to adapt it to our StytchSession interface
+  return {
+    status_code: 200,
+    request_id: 'react-hook-session',
+    member_id: memberSession.member_id,
+    organization_id: memberSession.organization_id,
+    session_token: memberSession.session_token || '',
+    session_jwt: memberSession.session_jwt || '',
+    member_session: {
+      member_session_id: memberSession.member_session_id,
+      member_id: memberSession.member_id,
+      organization_id: memberSession.organization_id,
+      started_at: memberSession.started_at,
+      last_accessed_at: memberSession.last_accessed_at,
+      expires_at: memberSession.expires_at,
+      authentication_factors: memberSession.authentication_factors || [],
+    },
+    member: memberSession.member,
+    organization: memberSession.organization,
+  };
+};
+
 // Component to handle the main authentication flow
 const AuthenticationFlow: React.FC = () => {
   const { session, isInitialized } = useStytchMemberSession();
@@ -34,13 +61,13 @@ const AuthenticationFlow: React.FC = () => {
   // Handle redirect when authenticated with return URL
   useEffect(() => {
     if (session && returnUrl) {
-      console.log('[Auth] Session detected with return URL:', returnUrl);
+      // Session detected with return URL - validate and redirect
       const validatedUrl = sanitizeReturnUrl(returnUrl);
-      console.log('[Auth] Validated URL:', validatedUrl);
+      // URL validation successful
       if (validatedUrl) {
         // Clear any stored return URL and redirect
         sessionStorage.removeItem('auth_return_url');
-        console.log('[Auth] Redirecting to:', validatedUrl);
+        // Redirecting to validated URL
         navigation.navigateTo(validatedUrl);
       } else {
         console.error('[Auth] Return URL failed validation:', returnUrl);
@@ -89,12 +116,21 @@ const AuthenticationFlow: React.FC = () => {
     }
 
     // Show session details
+    const stytchSession = convertToStytchSession(session);
+    if (!stytchSession) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-red-600">Invalid session format</div>
+        </div>
+      );
+    }
+    
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <AuthErrorBoundary>
             <SessionDisplay
-              session={session as StytchSession}
+              session={stytchSession}
               onLogout={handleLogout}
             />
           </AuthErrorBoundary>
