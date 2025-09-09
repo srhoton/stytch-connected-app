@@ -2,6 +2,12 @@ import React, { useMemo, memo } from 'react';
 import { Button } from '@/components/ui';
 import type { StytchSession } from '@/types';
 
+interface AuthenticationFactor {
+  type: string;
+  delivery_method: string;
+  last_authenticated_at: string;
+}
+
 export interface SessionDisplayProps {
   session: StytchSession;
   onLogout: () => void;
