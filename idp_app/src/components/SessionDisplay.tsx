@@ -180,7 +180,7 @@ const SessionDisplayComponent: React.FC<SessionDisplayProps> = ({
                     <div className="md:col-span-2">
                       <span className="font-medium text-gray-700">Authentication Methods:</span>
                       <div className="mt-1 flex flex-wrap gap-2">
-                        {session.member_session.authentication_factors.map((factor: any, index: number) => (
+                        {session.member_session.authentication_factors.map((factor: AuthenticationFactor, index: number) => (
                           <span
                             key={index}
                             className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800"
